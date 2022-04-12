@@ -1,0 +1,25 @@
+DATA:
+  USE_MOTION: True
+  SIZE: 320
+  TRAIN_JSON_PATH: "data/train_tracks_nlpaug.json"
+  EVAL_JSON_PATH: "data/val_tracks_nlpaug.json"
+  CROP_AREA: 1.5 ## new_w = CROP_AREA* old_w
+
+
+MODEL:
+  NAME: "dual-stream"
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+  IMG_ENCODER: "efficientnet-b3"
+  car_idloss: False
+  mo_idloss: False
+  share_idloss: False
+TRAIN: 
+  BATCH_SIZE: 16
+
+EVAL:
+  RESTORE_FROM: "checkpoints/motion_775baseline.pth"
+
+TEST:
+  QUERY_JSON_PATH: "data/val_tracks_nlpaug.json"
+  RESTORE_FROM: "motion_775baseline/checkpoint_best_eval.pth"
