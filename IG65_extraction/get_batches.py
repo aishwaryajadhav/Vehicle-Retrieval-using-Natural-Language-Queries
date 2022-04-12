@@ -1,6 +1,6 @@
 import json
 
-path = "/home/ubuntu/efs/data/aicity/train_tracks.json"
+path = "/home/ubuntu/efs/775/data/train_tracks.json"
 
 file = open(path)
 tracks = json.load(file)
@@ -12,7 +12,7 @@ num_tracks = len(track_names)
 
 batch_size = 300
 
-output_path = "/home/ubuntu/efs/data/aicity/batch_tracks/{0}.txt"
+output_path = "/home/ubuntu/efs/775/data/batch_tracks/{0}.txt"
 
 for i in range(0, num_tracks, batch_size):
     track_list = track_names[i:i+batch_size]
