@@ -6,6 +6,7 @@ import torch.hub
 import torch.nn as nn
 
 from torchvision.models.video.resnet import VideoResNet, BasicBlock, R2Plus1dStem, Conv2Plus1D
+from einops.layers.torch import Rearrange, Reduce
 
 
 model_urls = {
@@ -91,3 +92,25 @@ def r2plus1d_34(num_classes, pretrained=False, progress=False, arch=None):
         model.load_state_dict(state_dict)
 
     return model
+
+
+class R2Plus1D34(nn.Module):
+    def __init__(self, pool_spatial="mean", pool_temporal="mean"):
+        super().__init__()
+
+        self.model = r2plus1d_34_32_ig65m(num_classes=359, pretrained=True, progress=True)
+
+        self.pool_spatial = Reduce("n c t h w -> n c t", reduction=pool_spatial)
+        self.pool_temporal = Reduce("n c t -> n c", reduction=pool_temporal)
+
+    def forward(self, x):
+        x = self.model.stem(x)
+        x = self.model.layer1(x)
+        x = self.model.layer2(x)
+        x = self.model.layer3(x)
+        x = self.model.layer4(x)
+
+        x = self.pool_spatial(x)
+        x = self.pool_temporal(x)
+
+        return x
