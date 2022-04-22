@@ -6,6 +6,7 @@ from transformers import BertTokenizer, BertModel
 from transformers import RobertaTokenizer, RobertaModel
 from models.senet import se_resnext50_32x4d
 from .efficientnet import EfficientNet
+from models.video_encoder import r2plus1d_34_32_ig65m
 
 
 supported_img_encoders = ["se_resnext50_32x4d","efficientnet-b2","efficientnet-b3"]
@@ -116,6 +117,11 @@ class SiameseLocalandMotionModelBIG(torch.nn.Module):
                 self.img_in_dim = 2048
                 self.domian_vis_fc = nn.Conv2d(self.img_in_dim, embed_dim,kernel_size=1)
                 self.domian_vis_fc_bk = nn.Conv2d(self.img_in_dim, embed_dim,kernel_size=1)
+            elif self.model_cfg.IMG_ENCODER == "r2plus1d_34_32_ig65m":
+                self.vis_backbone = r2plus1d_34_32_ig65m(359, pretrained="r2plus1d_34_32_ig65m")
+                self.vis_backbone_bk = r2plus1d_34_32_ig65m(359, pretrained="r2plus1d_34_32_ig65m")
+                self.domian_vis_fc = nn.Conv2d(self.img_in_dim, embed_dim, kernel_size=1) # replace with linear layer
+                self.domian_vis_fc_bk = nn.Conv2d(self.img_in_dim, embed_dim,kernel_size=1) # replace with linear layer
             else:
                 self.vis_backbone = EfficientNet.from_pretrained(self.model_cfg.IMG_ENCODER)
                 self.vis_backbone_bk = EfficientNet.from_pretrained(self.model_cfg.IMG_ENCODER)
