@@ -14,6 +14,7 @@ _C.DATA.CROP_AREA = 1. ## new_w = CROP_AREA * old_w
 _C.DATA.TEST_TRACKS_JSON_PATH = "data/test-tracks.json"
 _C.DATA.USE_MOTION = True
 _C.DATA.MOTION_PATH = "data/motion_map"
+_C.DATA.VIDEO_PATH = "data/videos"
 
 
 # Model specific configurations.
