@@ -13,6 +13,7 @@ import torchvision
 from utils import get_logger
 import math
 from torchvision.io import read_video
+from torchvision.transforms import Compose
 
 
 def default_loader(path):
@@ -175,7 +176,6 @@ class CityFlowNLVideoDataset(Dataset):
         return len(self.all_indexs)
 
     def __getitem__(self, index):
-        print("10"*7)
         tmp_index = self.all_indexs[index]
         
         track = self.list_of_tracks[tmp_index]
@@ -194,4 +194,7 @@ class CityFlowNLVideoDataset(Dataset):
 
         frames, _, _ = read_video(video_path)
         
+        if self.transform is not None:
+            frames = self.transform(frames.numpy())
+
         return frames, text, tmp_index
