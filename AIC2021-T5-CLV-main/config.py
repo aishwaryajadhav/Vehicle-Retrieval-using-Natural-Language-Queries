@@ -7,14 +7,14 @@ _C = CN()
 # DATA process related configurations.
 _C.DATA = CN()
 _C.DATA.CITYFLOW_PATH = "data/AIC21_Track5_NL_Retrieval"
-_C.DATA.TRAIN_JSON_PATH = "data/train.json"
+_C.DATA.TRAIN_JSON_PATH = "/home/ubuntu/efs/code/11775Proj/data/val_tracks.json"
 _C.DATA.EVAL_JSON_PATH = "data/val.json"
 _C.DATA.SIZE = 288
 _C.DATA.CROP_AREA = 1. ## new_w = CROP_AREA * old_w
 _C.DATA.TEST_TRACKS_JSON_PATH = "data/test-tracks.json"
 _C.DATA.USE_MOTION = True
 _C.DATA.MOTION_PATH = "data/motion_map"
-_C.DATA.VIDEO_PATH = "data/videos"
+_C.DATA.VIDEO_PATH = "/home/ubuntu/efs/data/aicity/validation_tracks"
 
 
 # Model specific configurations.
@@ -48,8 +48,8 @@ _C.TRAIN.LR.DELAY = 8
 _C.TEST = CN()
 _C.TEST.RESTORE_FROM = None
 _C.TEST.QUERY_JSON_PATH = "data/test-queries.json"
-_C.TEST.BATCH_SIZE = 128
-_C.TEST.NUM_WORKERS = 6
+_C.TEST.BATCH_SIZE = 1
+_C.TEST.NUM_WORKERS = 1
 _C.TEST.CONTINUE = ""
 
 
