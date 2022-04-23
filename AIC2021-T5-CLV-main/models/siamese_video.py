@@ -55,7 +55,7 @@ class AttentionPool2d(nn.Module):
 
 
 
-class SiameseLocalandMotionModelBIG(torch.nn.Module):
+class SiameseVideoBase(torch.nn.Module):
     def __init__(self, model_cfg):
         super().__init__()
         self.model_cfg = model_cfg
@@ -86,7 +86,7 @@ class SiameseLocalandMotionModelBIG(torch.nn.Module):
             p.requires_grad = False
         self.logit_scale = nn.Parameter(torch.ones(()), requires_grad=True)
         
-        self.domian_vis_fc_merge = nn.Sequential(nn.Linear(embed_dim, embed_dim), nn.BatchNorm1d(embed_dim),nn.ReLU(), nn.Linear(embed_dim, embed_dim))
+        # self.domian_vis_fc_merge = nn.Sequential(nn.Linear(embed_dim, embed_dim), nn.BatchNorm1d(embed_dim),nn.ReLU(), nn.Linear(embed_dim, embed_dim))
         self.vis_car_fc = nn.Sequential(nn.BatchNorm1d(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
         self.lang_car_fc = nn.Sequential(nn.LayerNorm(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
         # self.vis_motion_fc = nn.Sequential(nn.BatchNorm1d(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))

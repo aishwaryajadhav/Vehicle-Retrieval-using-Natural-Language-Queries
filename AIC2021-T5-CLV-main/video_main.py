@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 from config import get_default_config
 from models.siamese_baseline import SiameseBaselineModelv1,SiameseLocalandMotionModelBIG
+from models.siamese_video import SiameseVideoBase
 from utils import TqdmToLogger, get_logger,AverageMeter,accuracy,ProgressMeter
 from datasets import CityFlowNLDataset
 from datasets import CityFlowNLInferenceDataset
@@ -28,6 +29,28 @@ from transformers import BertTokenizer,RobertaTokenizer, RobertaModel
 from collections import OrderedDict
 from transforms import ToTensor, Resize, Normalize
 from einops.layers.torch import Rearrange, Reduce
+from torch.nn.utils.rnn import pad_sequence
+import torch
+
+
+def collate(batch):
+    frame_list = []
+    text_list = []
+    tmp_index_list = []
+    max_len = 0
+    for frames, text, tmp_index in batch:
+        frame_list.append(frames)
+        text_list.append(text)
+        tmp_index_list.append(tmp_index)
+        max_len = max(max_len, frames.shape[1])
+    
+    batch_size = len(frame_list)
+
+    for i in range(batch_size):
+        dim_to_add = max_len - frame_list[i].shape[1]
+        frame_list[i] = torch.cat([frame_list[i], torch.zeros(3, dim_to_add, 224, 224)], 1)
+        
+    return torch.stack(frame_list), tuple(text_list), torch.tensor(tmp_index_list)
 
 
 class WarmUpLR(_LRScheduler):
@@ -101,7 +124,7 @@ def evaluate(model,valloader,epoch,cfg,index=2):
             loss_i_2_t = F.cross_entropy(sim_i_2_t, torch.arange(image.size(0)).cuda())
             loss += (loss_t_2_i+loss_i_2_t)/2
 
-            
+            # some issue with accuracy, comeback and check
             acc1, acc5 = accuracy(sim_t_2_i, torch.arange(image.size(0)).cuda(), topk=(1, 5))
             losses.update(loss.item(), image.size(0))
             top1_acc.update(acc1[0], image.size(0))
@@ -153,15 +176,16 @@ transform_video = torchvision.transforms.Compose([
 
 use_cuda = True
 train_data = CityFlowNLVideoDataset(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_video)
-trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS)
-val_data=CityFlowNLDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
-valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
+trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS, collate_fn = collate)
+print("Batch Size -> {0}".format(cfg.TRAIN.BATCH_SIZE))
+# val_data=CityFlowNLDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
+# valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
 os.makedirs(args.name,exist_ok = True)
 
 if cfg.MODEL.NAME == "base":
     model = SiameseBaselineModelv1(cfg.MODEL)
 elif cfg.MODEL.NAME == "dual-stream":
-    model = SiameseLocalandMotionModelBIG(cfg.MODEL)
+    model = SiameseVideoBase(cfg.MODEL)
 else:
     assert cfg.MODEL.NAME in ["base","dual-stream"] , "unsupported model"
 if args.resume:
@@ -230,10 +254,10 @@ for epoch in range(cfg.TRAIN.EPOCH):
             for cls_logit in cls_logits:
                 loss+= 0.5*F.cross_entropy(cls_logit, id_car.long().cuda())
 
-            acc1, acc5 = accuracy(sim_t_2_i, torch.arange(image.size(0)).cuda(), topk=(1, 5))
+            # acc1, acc5 = accuracy(sim_t_2_i, torch.arange(image.size(0)).cuda(), topk=(1, 5))
             losses.update(loss.item(), image.size(0))
-            top1_acc.update(acc1[0], image.size(0))
-            top5_acc.update(acc5[0], image.size(0))
+            # top1_acc.update(acc1[0], image.size(0))
+            # top5_acc.update(acc5[0], image.size(0))
 
             loss.backward()
             optimizer.step()
@@ -245,16 +269,16 @@ for epoch in range(cfg.TRAIN.EPOCH):
             if batch_idx % cfg.TRAIN.PRINT_FREQ == 0:
                 progress.display(global_step%(len(trainloader)*30))
     
-    if epoch%8==1:
-        checkpoint_file = args.name+"/checkpoint_%d.pth"%epoch
-        torch.save(
-            {"epoch": epoch, "global_step": global_step,
-             "state_dict": model.state_dict(),
-             "optimizer": optimizer.state_dict()}, checkpoint_file)
-    if top1_acc.avg > best_top1:
-        best_top1 = top1_acc.avg
-        checkpoint_file = args.name+"/checkpoint_best.pth"
-        torch.save(
-            {"epoch": epoch, "global_step": global_step,
-             "state_dict": model.state_dict(),
-             "optimizer": optimizer.state_dict()}, checkpoint_file)
+    # if epoch%8==1:
+    #     checkpoint_file = args.name+"/checkpoint_%d.pth"%epoch
+    #     torch.save(
+    #         {"epoch": epoch, "global_step": global_step,
+    #          "state_dict": model.state_dict(),
+    #          "optimizer": optimizer.state_dict()}, checkpoint_file)
+    # if top1_acc.avg > best_top1:
+    #     best_top1 = top1_acc.avg
+    #     checkpoint_file = args.name+"/checkpoint_best.pth"
+    #     torch.save(
+    #         {"epoch": epoch, "global_step": global_step,
+    #          "state_dict": model.state_dict(),
+    #          "optimizer": optimizer.state_dict()}, checkpoint_file)
