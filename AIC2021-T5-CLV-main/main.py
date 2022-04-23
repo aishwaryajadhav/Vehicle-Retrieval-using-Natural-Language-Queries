@@ -19,12 +19,15 @@ from models.siamese_baseline import SiameseBaselineModelv1,SiameseLocalandMotion
 from utils import TqdmToLogger, get_logger,AverageMeter,accuracy,ProgressMeter
 from datasets import CityFlowNLDataset
 from datasets import CityFlowNLInferenceDataset
+from datasets import CityFlowNLVideoDataset
 from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import time
 import torch.nn.functional as F
 from transformers import BertTokenizer,RobertaTokenizer, RobertaModel
 from collections import OrderedDict
+from transforms import ToTensor, Resize, Normalize
+from einops.layers.torch import Rearrange, Reduce
 
 
 class WarmUpLR(_LRScheduler):
@@ -139,10 +142,17 @@ transform_test = torchvision.transforms.Compose([
     torchvision.transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
 ])
 
+transform_video = torchvision.transforms.Compose([
+        ToTensor(),
+        Rearrange("t h w c -> c t h w"),
+        Resize((224, 224)),
+        Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+    ])
+
 
 
 use_cuda = True
-train_data=CityFlowNLDataset(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_test)
+train_data = CityFlowNLVideoDataset(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_video)
 trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS)
 val_data=CityFlowNLDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
 valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
@@ -181,7 +191,7 @@ model.train()
 global_step = 0
 best_top1 = 0.
 for epoch in range(cfg.TRAIN.EPOCH):
-    evaluate(model,valloader,epoch,cfg,0)
+    # evaluate(model,valloader,epoch,cfg,0)
     model.train()
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')

@@ -169,7 +169,7 @@ class SiameseLocalandMotionModelBIG(torch.nn.Module):
         visual_embeds = F.normalize(visual_merge_embeds, p = 2, dim = -1)
         return visual_embeds
 
-    def forward(self, nl_input_ids,nl_attention_mask,crops,motion):
+    def forward(self, nl_input_ids,nl_attention_mask,crops,motion=None):
 
         outputs = self.bert_model(nl_input_ids,attention_mask=nl_attention_mask)
         lang_embeds = torch.mean(outputs.last_hidden_state, dim=1)
