@@ -10,4 +10,4 @@ MODEL:
   mo_idloss: False
   share_idloss: False
 TRAIN: 
-  BATCH_SIZE: 1
+  BATCH_SIZE: 2
