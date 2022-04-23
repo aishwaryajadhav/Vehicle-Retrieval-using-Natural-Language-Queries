@@ -178,8 +178,8 @@ use_cuda = True
 train_data = CityFlowNLVideoDataset(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_video)
 trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS, collate_fn = collate)
 print("Batch Size -> {0}".format(cfg.TRAIN.BATCH_SIZE))
-# val_data=CityFlowNLDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
-# valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
+val_data = CityFlowNLVideoDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_video,Random = False)
+valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
 os.makedirs(args.name,exist_ok = True)
 
 if cfg.MODEL.NAME == "base":
