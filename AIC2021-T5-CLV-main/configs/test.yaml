@@ -1,0 +1,13 @@
+DATA:
+  USE_MOTION: False
+
+MODEL:
+  NAME: "dual-stream"
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+  IMG_ENCODER: "r2plus1d_34_32_ig65m"
+  car_idloss: True
+  mo_idloss: False
+  share_idloss: False
+TRAIN: 
+  BATCH_SIZE: 1
