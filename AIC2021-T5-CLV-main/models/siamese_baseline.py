@@ -9,7 +9,7 @@ from .efficientnet import EfficientNet
 from models.video_encoder import R2Plus1D34
 
 
-supported_img_encoders = ["se_resnext50_32x4d","efficientnet-b2","efficientnet-b3"]
+supported_img_encoders = ["se_resnext50_32x4d","efficientnet-b2","efficientnet-b3","r2plus1d_34_32_ig65m"]
 
 class AttentionPool2d(nn.Module):
     def __init__(self, spacial_dim: int, embed_dim: int, num_heads: int, output_dim: int = None):
