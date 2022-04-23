@@ -113,6 +113,4 @@ class R2Plus1D34(nn.Module):
         x = self.pool_spatial(x)
         x = self.pool_temporal(x)
 
-        # x = x.mean(0, keepdim=True)
-
         return x
