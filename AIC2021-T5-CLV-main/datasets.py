@@ -348,7 +348,7 @@ class CityFlowNLInferenceBK(Dataset):
             if os.path.exists(bk_path):
                 # print("BK path -> " + bk_path)
                 bk_numpy = np.load(bk_path)
-                if len(bk_nummp.shape) == 1:
+                if len(bk_numpy.shape) == 1:
                     bk = torch.ones(1, 512)
                 else:
                     bk = torch.from_numpy(bk_numpy)
