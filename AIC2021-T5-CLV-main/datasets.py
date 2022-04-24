@@ -348,8 +348,11 @@ class CityFlowNLInferenceBK(Dataset):
             if os.path.exists(bk_path):
                 # print("BK path -> " + bk_path)
                 bk_numpy = np.load(bk_path)
-                bk = torch.from_numpy(bk_numpy)
-                bk = torch.mean(bk, 0, keepdim=True)
+                if len(bk_nummp.shape) == 1:
+                    bk = torch.ones(1, 512)
+                else:
+                    bk = torch.from_numpy(bk_numpy)
+                    bk = torch.mean(bk, 0, keepdim=True)
             else:
                 bk = torch.ones(1, 512)
             return crop,bk,track["track_id"],track["frames_id"]
