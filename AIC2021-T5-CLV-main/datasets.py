@@ -14,6 +14,7 @@ from utils import get_logger
 import math
 from torchvision.io import read_video
 from torchvision.transforms import Compose
+import numpy as np
 
 
 def default_loader(path):
@@ -198,3 +199,93 @@ class CityFlowNLVideoDataset(Dataset):
             frames = self.transform(frames.numpy())
 
         return frames, text, tmp_index
+
+
+class CityNLFlowVideoBK(Dataset):
+    def __init__(self, data_cfg,json_path,transform = None,Random= True):
+        """
+        Dataset for training.
+        :param data_cfg: CfgNode for CityFlow NL.
+        """
+        self.data_cfg = data_cfg.clone()
+        self.crop_area = data_cfg.CROP_AREA
+        self.random = Random
+        with open(json_path) as f:
+            tracks = json.load(f)
+        self.list_of_uuids = list(tracks.keys())
+        self.list_of_tracks = list(tracks.values())
+        self.transform = transform
+        self.bk_dic = {}
+        self._logger = get_logger()
+        
+        self.all_indexs = list(range(len(self.list_of_uuids)))
+        self.flip_tag = [False]*len(self.list_of_uuids)
+        flip_aug = False
+        if flip_aug:
+            for i in range(len(self.list_of_uuids)):
+                text = self.list_of_tracks[i]["nl"]
+                for j in range(len(text)):
+                    nl = text[j]
+                    if "turn" in nl:
+                        if "left" in nl:
+                            self.all_indexs.append(i)
+                            self.flip_tag.append(True)
+                            break
+                        elif "right" in nl:
+                            self.all_indexs.append(i)
+                            self.flip_tag.append(True)
+                            break
+        print(len(self.all_indexs))
+        print("data load")
+
+    def __len__(self):
+        return len(self.all_indexs)
+
+    def __getitem__(self, index):
+   
+        tmp_index = self.all_indexs[index]
+        flag = self.flip_tag[index]
+        track = self.list_of_tracks[tmp_index]
+        if self.random:
+            nl_idx = int(random.uniform(0, 3))
+            frame_idx = int(random.uniform(0, len(track["frames"])))
+        else:
+            nl_idx = 2
+            frame_idx = 0
+        text = track["nl"][nl_idx]
+        if flag:
+            text = text.replace("left","888888").replace("right","left").replace("888888","right")
+        
+        frame_path = os.path.join(self.data_cfg.CITYFLOW_PATH, track["frames"][frame_idx])
+        # print(frame_path)
+        
+        frame = default_loader(frame_path)
+        box = track["boxes"][frame_idx]
+        if self.crop_area == 1.6666667:
+            box = (int(box[0]-box[2]/3.),int(box[1]-box[3]/3.),int(box[0]+4*box[2]/3.),int(box[1]+4*box[3]/3.))
+        else:
+            box = (int(box[0]-(self.crop_area-1)*box[2]/2.),int(box[1]-(self.crop_area-1)*box[3]/2),int(box[0]+(self.crop_area+1)*box[2]/2.),int(box[1]+(self.crop_area+1)*box[3]/2.))
+        
+
+        crop = frame.crop(box)
+        if self.transform is not None:
+            crop = self.transform(crop)
+        if self.data_cfg.USE_MOTION:
+            # print("USING MOTION")
+            if self.list_of_uuids[tmp_index] in self.bk_dic:
+                bk = self.bk_dic[self.list_of_uuids[tmp_index]]
+            else:
+                bk_path = os.path.join(self.data_cfg.MOTION_PATH, "{0}.npy".format(self.list_of_uuids[tmp_index]))
+                # print("BK path -> " + bk_path)
+                bk_numpy = np.load(bk_path)
+                bk = torch.from_numpy(bk_numpy)
+                bk = torch.mean(bk, 0, keepdim=True)
+                self.bk_dic[self.list_of_uuids[tmp_index]] = bk
+                
+            if flag:
+                crop = torch.flip(crop,[1])
+                bk = torch.flip(bk,[1])
+            return crop,text,bk,tmp_index
+        if flag:
+            crop = torch.flip(crop,[1])
+        return crop,text,tmp_index

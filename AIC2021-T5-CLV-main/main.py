@@ -15,11 +15,12 @@ from torch.utils.data import DataLoader, DistributedSampler
 from tqdm import tqdm
 
 from config import get_default_config
-from models.siamese_baseline import SiameseBaselineModelv1,SiameseLocalandMotionModelBIG
+from models.siamese_baseline import SiameseBaselineModelv1,SiameseLocalandMotionModelBIG, SiameseLocalandMotionOfflineVideo
 from utils import TqdmToLogger, get_logger,AverageMeter,accuracy,ProgressMeter
 from datasets import CityFlowNLDataset
 from datasets import CityFlowNLInferenceDataset
 from datasets import CityFlowNLVideoDataset
+from datasets import CityNLFlowVideoBK
 from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import time
@@ -81,12 +82,18 @@ def evaluate(model,valloader,epoch,cfg,index=2):
         for batch_idx,batch in enumerate(valloader):
             if cfg.DATA.USE_MOTION:
                 image,text,bk,id_car = batch
+                # print("*"*50)
+                # print(bk.shape)
+                # print("*"*50)
             else:
                 image,text,id_car = batch
             tokens = tokenizer.batch_encode_plus(text, padding='longest',
                                                    return_tensors='pt')
             data_time.update(time.time() - end)
             if cfg.DATA.USE_MOTION:
+                # print("*"*50)
+                # print(bk.shape)
+                # print("*"*50)
                 pairs,logit_scale,cls_logits = model(tokens['input_ids'].cuda(),tokens['attention_mask'].cuda(),image.cuda(),bk.cuda())
             else:
                 pairs,logit_scale,cls_logits = model(tokens['input_ids'].cuda(),tokens['attention_mask'].cuda(),image.cuda())
@@ -152,18 +159,23 @@ transform_video = torchvision.transforms.Compose([
 
 
 use_cuda = True
-train_data = CityFlowNLVideoDataset(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_video)
+
+train_data = CityNLFlowVideoBK(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_test)
 trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS)
-val_data=CityFlowNLDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
+
+val_data = CityNLFlowVideoBK(cfg.DATA,json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_test,Random = False)
 valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
+
 os.makedirs(args.name,exist_ok = True)
 
 if cfg.MODEL.NAME == "base":
     model = SiameseBaselineModelv1(cfg.MODEL)
 elif cfg.MODEL.NAME == "dual-stream":
     model = SiameseLocalandMotionModelBIG(cfg.MODEL)
+elif cfg.MODEL.NAME == "video-bk":
+    model = SiameseLocalandMotionOfflineVideo(cfg.MODEL)
 else:
-    assert cfg.MODEL.NAME in ["base","dual-stream"] , "unsupported model"
+    assert cfg.MODEL.NAME in ["base","dual-stream","video-bk"] , "unsupported model"
 if args.resume:
     checkpoint = torch.load(cfg.EVAL.RESTORE_FROM)
     new_state_dict = OrderedDict()
@@ -190,8 +202,13 @@ elif cfg.MODEL.BERT_TYPE == "ROBERTA":
 model.train()
 global_step = 0
 best_top1 = 0.
+
+print("*"*50)
+print("Train Loop Starts")
+print("*"*50)
+
 for epoch in range(cfg.TRAIN.EPOCH):
-    # evaluate(model,valloader,epoch,cfg,0)
+    evaluate(model,valloader,epoch,cfg,0)
     model.train()
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
