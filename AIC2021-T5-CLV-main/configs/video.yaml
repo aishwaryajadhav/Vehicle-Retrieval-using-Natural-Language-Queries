@@ -1,0 +1,38 @@
+DATA:
+  USE_MOTION: True
+  SIZE: 320
+  TRAIN_JSON_PATH: "data/train_tracks_bart_nlpaug.json"
+  EVAL_JSON_PATH: "data/val_tracks_bart_nlpaug.json"
+  CROP_AREA: 1.5 ## new_w = CROP_AREA* old_w
+
+  ## We may need to add a new data path for feature vectors.
+
+
+MODEL:
+  NAME: "dual-stream"
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+
+  ## This is image encoder for local crop image
+  IMG_ENCODER: "efficientnet-b3"
+  car_idloss: False
+
+  ## I configure this False, these two might be True.
+  mo_idloss: False
+  share_idloss: False
+
+
+TRAIN: 
+  BATCH_SIZE: 16
+
+EVAL:
+## This field is not used if we are not resume training old models.
+  RESTORE_FROM: "checkpoints/motion_775baseline.pth"
+
+TEST:
+## When running main.py to train, you will specify a experiment name
+## A folder with the same name will be created to save checkpoints.
+## in this example, the experiment name is video.
+  QUERY_JSON_PATH: "data/val_tracks_bart_nlpaug.json"
+  RESTORE_FROM: "video/checkpoint_best_eval.pth"
+  
