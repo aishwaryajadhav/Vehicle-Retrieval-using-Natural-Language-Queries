@@ -6,14 +6,14 @@ _C = CN()
 
 # DATA process related configurations.
 _C.DATA = CN()
-_C.DATA.CITYFLOW_PATH = ""
+_C.DATA.CITYFLOW_PATH = "/home/ubuntu/efs/data/aicity/"
 _C.DATA.TRAIN_JSON_PATH = "/home/ubuntu/efs/code/11775Proj/data/test_video.json"
 _C.DATA.EVAL_JSON_PATH = "data/val.json"
 _C.DATA.SIZE = 288
 _C.DATA.CROP_AREA = 1. ## new_w = CROP_AREA * old_w
 _C.DATA.TEST_TRACKS_JSON_PATH = "data/test-tracks.json"
-_C.DATA.USE_MOTION = False
-_C.DATA.MOTION_PATH = "data/motion_map"
+_C.DATA.USE_MOTION = True
+_C.DATA.MOTION_PATH = "/home/ubuntu/efs/data/aicity/validation_ig65m_clip1"
 _C.DATA.VIDEO_PATH = "/home/ubuntu/efs/data/aicity/validation_tracks"
 
 
@@ -23,7 +23,7 @@ _C.MODEL = CN()
 _C.MODEL.NAME = "base" #base or dual-stream
 _C.MODEL.BERT_TYPE = "BERT"
 _C.MODEL.BERT_NAME = "bert-base-uncased"
-_C.MODEL.IMG_ENCODER = "r2plus1d_34_32_ig65m" # se_resnext50_32x4d, efficientnet-b2, efficientnet-b3, r2plus1d_34_32_ig65m
+_C.MODEL.IMG_ENCODER = "efficientnet-b3" # se_resnext50_32x4d, efficientnet-b2, efficientnet-b3, r2plus1d_34_32_ig65m
 _C.MODEL.NUM_CLASS = 2498
 _C.MODEL.EMBED_DIM = 1024
 _C.MODEL.car_idloss = True
