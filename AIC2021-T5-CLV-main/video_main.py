@@ -127,21 +127,21 @@ def evaluate(model,valloader,epoch,cfg,index=2):
             loss += (loss_t_2_i+loss_i_2_t)/2
 
             # some issue with accuracy, comeback and check
-            acc1, acc5 = accuracy(sim_t_2_i, torch.arange(image.size(0)).cuda(), topk=(1, 5))
-            losses.update(loss.item(), image.size(0))
-            top1_acc.update(acc1[0], image.size(0))
-            top5_acc.update(acc5[0], image.size(0))
+            # acc1, acc5 = accuracy(sim_t_2_i, torch.arange(image.size(0)).cuda(), topk=(1, 5))
+            # losses.update(loss.item(), image.size(0))
+            # top1_acc.update(acc1[0], image.size(0))
+            # top5_acc.update(acc5[0], image.size(0))
             batch_time.update(time.time() - end)
             end = time.time()
 
             progress.display(batch_idx)
-    if top1_acc.avg > best_top1_eval:
-        best_top1_eval = top1_acc.avg
-        checkpoint_file = args.name+"/checkpoint_best_eval.pth"
-        torch.save(
-            {"epoch": epoch, 
-             "state_dict": model.state_dict(),
-             "optimizer": optimizer.state_dict()}, checkpoint_file)
+    # if top1_acc.avg > best_top1_eval:
+    #     best_top1_eval = top1_acc.avg
+    #     checkpoint_file = args.name+"/checkpoint_best_eval.pth"
+    #     torch.save(
+    #         {"epoch": epoch, 
+    #          "state_dict": model.state_dict(),
+    #          "optimizer": optimizer.state_dict()}, checkpoint_file)
 
 
 parser = argparse.ArgumentParser(description='AICT5 Training')
@@ -180,8 +180,8 @@ use_cuda = True
 train_data = CityFlowNLVideoDataset(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_video)
 trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS, collate_fn = collate)
 print("Batch Size -> {0}".format(cfg.TRAIN.BATCH_SIZE))
-# val_data=CityFlowNLDataset(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
-# valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
+val_data = CityFlowNLVideoDataset(cfg.DATA,json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_video,Random = False)
+valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS, collate_fn = collate)
 os.makedirs(args.name,exist_ok = True)
 
 if cfg.MODEL.NAME == "base":
@@ -217,7 +217,7 @@ model.train()
 global_step = 0
 best_top1 = 0.
 for epoch in range(cfg.TRAIN.EPOCH):
-    # evaluate(model,valloader,epoch,cfg,0)
+    evaluate(model,valloader,epoch,cfg,0)
     model.train()
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')

@@ -1,13 +1,13 @@
 DATA:
-  USE_MOTION: False
+  USE_MOTION: True
 
 MODEL:
-  NAME: "dual-stream"
+  NAME: "video-bk"
   BERT_TYPE: "ROBERTA"
   BERT_NAME: "roberta-large"
-  IMG_ENCODER: "r2plus1d_34_32_ig65m"
-  car_idloss: True
+  IMG_ENCODER: "efficientnet-b3"
+  car_idloss: False
   mo_idloss: False
   share_idloss: False
 TRAIN: 
-  BATCH_SIZE: 2
+  BATCH_SIZE: 8
