@@ -68,9 +68,10 @@ class SiameseVideoBase(torch.nn.Module):
                 self.domian_vis_fc = nn.Conv2d(self.img_in_dim, embed_dim,kernel_size=1)
                 self.domian_vis_fc_bk = nn.Conv2d(self.img_in_dim, embed_dim,kernel_size=1)
             elif self.model_cfg.IMG_ENCODER == "r2plus1d_34_32_ig65m":
-                self.vis_backbone = R2Plus1D34()
-                # self.vis_backbone_bk = R2Plus1D34()
-                self.domian_vis_fc = nn.Linear(in_features=512, out_features=embed_dim)
+                self.vis_backbone = EfficientNet.from_pretrained(self.model_cfg.IMG_ENCODER)
+                self.vis_backbone_bk = R2Plus1D34()
+                self.domian_vis_fc = nn.Linear(self.img_in_dim, embed_dim)
+                self.domian_vis_fc_bk = nn.Linear(in_features=512, out_features=embed_dim)
                 # self.domian_vis_fc_bk = nn.Linear(in_features=512, out_features=embed_dim)
             else:
                 self.vis_backbone = EfficientNet.from_pretrained(self.model_cfg.IMG_ENCODER)
@@ -86,10 +87,10 @@ class SiameseVideoBase(torch.nn.Module):
             p.requires_grad = False
         self.logit_scale = nn.Parameter(torch.ones(()), requires_grad=True)
         
-        # self.domian_vis_fc_merge = nn.Sequential(nn.Linear(embed_dim, embed_dim), nn.BatchNorm1d(embed_dim),nn.ReLU(), nn.Linear(embed_dim, embed_dim))
+        self.domian_vis_fc_merge = nn.Sequential(nn.Linear(embed_dim, embed_dim), nn.BatchNorm1d(embed_dim),nn.ReLU(), nn.Linear(embed_dim, embed_dim))
         self.vis_car_fc = nn.Sequential(nn.BatchNorm1d(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
         self.lang_car_fc = nn.Sequential(nn.LayerNorm(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
-        # self.vis_motion_fc = nn.Sequential(nn.BatchNorm1d(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
+        self.vis_motion_fc = nn.Sequential(nn.BatchNorm1d(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
         self.lang_motion_fc = nn.Sequential(nn.LayerNorm(embed_dim),nn.ReLU(),nn.Linear(embed_dim, embed_dim//2))
 
         self.domian_lang_fc = nn.Sequential(nn.LayerNorm(embed_dim),nn.Linear(embed_dim, embed_dim), nn.ReLU(), nn.Linear(embed_dim, embed_dim))
@@ -111,12 +112,12 @@ class SiameseVideoBase(torch.nn.Module):
     def encode_images(self,crops,motion):
         visual_embeds = self.domian_vis_fc(self.vis_backbone(crops))
         visual_embeds = visual_embeds.view(visual_embeds.size(0), -1)
-        # motion_embeds = self.domian_vis_fc_bk(self.vis_backbone_bk(motion))
-        # motion_embeds = motion_embeds.view(motion_embeds.size(0), -1)
+        motion_embeds = self.domian_vis_fc_bk(self.vis_backbone_bk(motion))
+        motion_embeds = motion_embeds.view(motion_embeds.size(0), -1)
         visual_car_embeds = self.vis_car_fc(visual_embeds)
-        # visual_mo_embeds = self.vis_motion_fc(motion_embeds)
-        # visual_merge_embeds = self.domian_vis_fc_merge(torch.cat([visual_car_embeds,visual_mo_embeds],dim=-1))
-        # visual_embeds = F.normalize(visual_merge_embeds, p = 2, dim = -1)
+        visual_mo_embeds = self.vis_motion_fc(motion_embeds)
+        visual_merge_embeds = self.domian_vis_fc_merge(torch.cat([visual_car_embeds,visual_mo_embeds],dim=-1))
+        visual_embeds = F.normalize(visual_merge_embeds, p = 2, dim = -1)
         visual_embeds = F.normalize(visual_embeds, p = 2, dim = -1)
         return visual_embeds
 
@@ -127,12 +128,12 @@ class SiameseVideoBase(torch.nn.Module):
         lang_embeds = self.domian_lang_fc(lang_embeds)
         visual_embeds = self.domian_vis_fc(self.vis_backbone(crops))
         visual_embeds = visual_embeds.view(visual_embeds.size(0), -1)
-        # motion_embeds = self.domian_vis_fc_bk(self.vis_backbone_bk(motion))
-        # motion_embeds = motion_embeds.view(motion_embeds.size(0), -1)        
+        motion_embeds = self.domian_vis_fc_bk(self.vis_backbone_bk(motion))
+        motion_embeds = motion_embeds.view(motion_embeds.size(0), -1)        
         visual_car_embeds = self.vis_car_fc(visual_embeds)
-        # visual_mo_embeds = self.vis_motion_fc(motion_embeds)
-        # visual_merge_embeds = self.domian_vis_fc_merge(torch.cat([visual_car_embeds,visual_mo_embeds],dim=-1))
-        # visual_merge_embeds = visual_car_embeds
+        visual_mo_embeds = self.vis_motion_fc(motion_embeds)
+        visual_merge_embeds = self.domianvis_fc_merge(torch.cat([visual_car_embeds,visual_mo_embeds],dim=-1))
+        visual_merge_embeds = visual_car_embeds
         cls_logits_results = []
         if self.model_cfg.car_idloss:
             cls_logits = self.id_cls(visual_embeds)
@@ -148,10 +149,10 @@ class SiameseVideoBase(torch.nn.Module):
             cls_logits_results.append(merge_cls_t)
             cls_logits_results.append(merge_cls_v)
 
-        # visual_merge_embeds, lang_merge_embeds,visual_car_embeds,lang_car_embeds,visual_mo_embeds,lang_mo_embeds = map(lambda t: F.normalize(t, p = 2, dim = -1), (visual_merge_embeds, lang_embeds,visual_car_embeds,lang_car_embeds,visual_mo_embeds,lang_mo_embeds))
+        visual_merge_embeds, lang_merge_embeds,visual_car_embeds,lang_car_embeds,visual_mo_embeds,lang_mo_embeds = map(lambda t: F.normalize(t, p = 2, dim = -1), (visual_merge_embeds, lang_embeds,visual_car_embeds,lang_car_embeds,visual_mo_embeds,lang_mo_embeds))
 
-        # return [(visual_car_embeds,lang_car_embeds),(visual_mo_embeds,lang_mo_embeds),(visual_merge_embeds, lang_merge_embeds)],self.logit_scale,cls_logits_results
+        return [(visual_car_embeds,lang_car_embeds),(visual_mo_embeds,lang_mo_embeds),(visual_merge_embeds, lang_merge_embeds)],self.logit_scale,cls_logits_results
 
-        visual_car_embeds,lang_car_embeds = map(lambda t: F.normalize(t, p = 2, dim = -1), (visual_car_embeds,lang_car_embeds))
+        # visual_car_embeds,lang_car_embeds = map(lambda t: F.normalize(t, p = 2, dim = -1), (visual_car_embeds,lang_car_embeds))
 
-        return [(visual_car_embeds,lang_car_embeds)], self.logit_scale, cls_logits_results
+        # return [(visual_car_embeds,lang_car_embeds)], self.logit_scale, cls_logits_results

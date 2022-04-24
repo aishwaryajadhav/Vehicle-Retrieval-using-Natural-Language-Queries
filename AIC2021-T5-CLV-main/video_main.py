@@ -36,10 +36,12 @@ import torch
 def collate(batch):
     frame_list = []
     text_list = []
+    crop_list = []
     tmp_index_list = []
     max_len = 0
-    for frames, text, tmp_index in batch:
+    for frames, crop, text, tmp_index in batch:
         frame_list.append(frames)
+        crop_list.append(crop)
         text_list.append(text)
         tmp_index_list.append(tmp_index)
         max_len = max(max_len, frames.shape[1])
@@ -50,7 +52,7 @@ def collate(batch):
         dim_to_add = max_len - frame_list[i].shape[1]
         frame_list[i] = torch.cat([frame_list[i], torch.zeros(3, dim_to_add, 224, 224)], 1)
         
-    return torch.stack(frame_list), tuple(text_list), torch.tensor(tmp_index_list)
+    return torch.stack(frame_list), torch.stack(crop_list), tuple(text_list), torch.tensor(tmp_index_list)
 
 
 class WarmUpLR(_LRScheduler):
@@ -230,7 +232,7 @@ for epoch in range(cfg.TRAIN.EPOCH):
     for tmp in range(cfg.TRAIN.ONE_EPOCH_REPEAT):
         for batch_idx,batch in enumerate(trainloader):
             if cfg.DATA.USE_MOTION:
-                image,text,bk,id_car = batch
+                bk, image,text,id_car = batch
             else:
                 image,text,id_car = batch
             tokens = tokenizer.batch_encode_plus(text, padding='longest',

@@ -190,6 +190,18 @@ class CityFlowNLVideoDataset(Dataset):
             frame_idx = 0
         text = track["nl"][nl_idx]
         
+        ### Crop Image
+        frame_path = os.path.join(self.data_cfg.CITYFLOW_PATH, track["frames"][frame_idx])
+        box = track["boxes"][frame_idx]
+        frame = default_loader(frame_path)
+        if self.crop_area == 1.6666667:
+            box = (int(box[0]-box[2]/3.),int(box[1]-box[3]/3.),int(box[0]+4*box[2]/3.),int(box[1]+4*box[3]/3.))
+        else:
+            box = (int(box[0]-(self.crop_area-1)*box[2]/2.),int(box[1]-(self.crop_area-1)*box[3]/2),int(box[0]+(self.crop_area+1)*box[2]/2.),int(box[1]+(self.crop_area+1)*box[3]/2.))
+        crop = frame.crop(box)
+        if self.transform is not None:
+            crop = self.transform(crop)
+
         video_path = os.path.join(self.data_cfg.VIDEO_PATH, self.list_of_uuids[tmp_index]) + ".mp4"
 
         frames, _, _ = read_video(video_path)
@@ -197,4 +209,4 @@ class CityFlowNLVideoDataset(Dataset):
         if self.transform is not None:
             frames = self.transform(frames.numpy())
 
-        return frames, text, tmp_index
+        return frames, crop, text, tmp_index
