@@ -288,10 +288,13 @@ class CityNLFlowVideoBK(Dataset):
                 bk = self.bk_dic[self.list_of_uuids[tmp_index]]
             else:
                 bk_path = os.path.join(self.data_cfg.MOTION_PATH, "{0}.npy".format(self.list_of_uuids[tmp_index]))
-                # print("BK path -> " + bk_path)
-                bk_numpy = np.load(bk_path)
-                bk = torch.from_numpy(bk_numpy)
-                bk = torch.mean(bk, 0, keepdim=True)
+                if os.path.exists(bk_path):
+                    # print("BK path -> " + bk_path)
+                    bk_numpy = np.load(bk_path)
+                    bk = torch.from_numpy(bk_numpy)
+                    bk = torch.mean(bk, 0, keepdim=True)
+                else:
+                    bk = torch.ones(1, 512)
                 self.bk_dic[self.list_of_uuids[tmp_index]] = bk
                 
             if flag:
