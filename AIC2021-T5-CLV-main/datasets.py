@@ -304,3 +304,53 @@ class CityNLFlowVideoBK(Dataset):
         if flag:
             crop = torch.flip(crop,[1])
         return crop,text,tmp_index
+
+
+class CityFlowNLInferenceBK(Dataset):
+    def __init__(self, data_cfg,transform = None):
+        """Dataset for evaluation. Loading tracks instead of frames."""
+        self.data_cfg = data_cfg
+        self.crop_area = data_cfg.CROP_AREA
+        self.transform = transform
+        with open(self.data_cfg.TEST_TRACKS_JSON_PATH) as f:
+            tracks = json.load(f)
+        self.list_of_uuids = list(tracks.keys())
+        self.list_of_tracks = list(tracks.values())
+        self.list_of_crops = list()
+        for track_id_index,track in enumerate(self.list_of_tracks):
+            for frame_idx, frame in enumerate(track["frames"]):
+                frame_path = os.path.join(self.data_cfg.CITYFLOW_PATH, frame)
+                box = track["boxes"][frame_idx]
+                crop = {"frame": frame_path, "frames_id":frame_idx,"track_id": self.list_of_uuids[track_id_index], "box": box}
+                self.list_of_crops.append(crop)
+        self._logger = get_logger()
+
+    def __len__(self):
+        return len(self.list_of_crops)
+
+    def __getitem__(self, index):
+        track = self.list_of_crops[index]
+        frame_path = track["frame"]
+
+        frame = default_loader(frame_path)
+        box = track["box"]
+        if self.crop_area == 1.6666667:
+            box = (int(box[0]-box[2]/3.),int(box[1]-box[3]/3.),int(box[0]+4*box[2]/3.),int(box[1]+4*box[3]/3.))
+        else:
+            box = (int(box[0]-(self.crop_area-1)*box[2]/2.),int(box[1]-(self.crop_area-1)*box[3]/2),int(box[0]+(self.crop_area+1)*box[2]/2.),int(box[1]+(self.crop_area+1)*box[3]/2.))
+        
+
+        crop = frame.crop(box)
+        if self.transform is not None:
+            crop = self.transform(crop)
+        if self.data_cfg.USE_MOTION:
+            bk_path = os.path.join(self.data_cfg.MOTION_PATH, "{0}.npy".format(self.list_of_uuids[tmp_index]))
+            if os.path.exists(bk_path):
+                # print("BK path -> " + bk_path)
+                bk_numpy = np.load(bk_path)
+                bk = torch.from_numpy(bk_numpy)
+                bk = torch.mean(bk, 0, keepdim=True)
+            else:
+                bk = torch.ones(1, 512)
+            return crop,bk,track["track_id"],track["frames_id"]
+        return crop,track["track_id"],track["frames_id"]

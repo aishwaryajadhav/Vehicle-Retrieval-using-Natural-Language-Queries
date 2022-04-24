@@ -20,7 +20,7 @@ from utils import TqdmToLogger, get_logger,AverageMeter,accuracy,ProgressMeter
 from datasets import CityFlowNLDataset
 from datasets import CityFlowNLInferenceDataset
 from datasets import CityFlowNLVideoDataset
-from datasets import CityNLFlowVideoBK
+from datasets import CityNLFlowVideoBK, CityFlowNLInferenceBK
 from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import time
