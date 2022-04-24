@@ -18,8 +18,8 @@ MODEL:
   car_idloss: False
 
   ## I configure this False, these two might be True.
-  mo_idloss: False
-  share_idloss: False
+  mo_idloss: True
+  share_idloss: True
 
 
 TRAIN: 
@@ -34,5 +34,5 @@ TEST:
 ## A folder with the same name will be created to save checkpoints.
 ## in this example, the experiment name is video.
   QUERY_JSON_PATH: "data/val_tracks_bart_nlpaug.json"
-  RESTORE_FROM: "video/checkpoint_best_eval.pth"
+  RESTORE_FROM: "video_bk/checkpoint_best_eval.pth"
   

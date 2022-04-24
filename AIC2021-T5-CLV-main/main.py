@@ -157,13 +157,12 @@ transform_video = torchvision.transforms.Compose([
     ])
 
 
-
 use_cuda = True
 
 train_data = CityNLFlowVideoBK(cfg.DATA, json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_test)
 trainloader = DataLoader(dataset=train_data, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True, num_workers=cfg.TRAIN.NUM_WORKERS)
 
-val_data = CityNLFlowVideoBK(cfg.DATA,json_path = cfg.DATA.TRAIN_JSON_PATH, transform=transform_test,Random = False)
+val_data = CityNLFlowVideoBK(cfg.DATA,json_path = cfg.DATA.EVAL_JSON_PATH, transform=transform_test,Random = False)
 valloader = DataLoader(dataset=val_data, batch_size=cfg.TRAIN.BATCH_SIZE*20, shuffle=False, num_workers=cfg.TRAIN.NUM_WORKERS)
 
 os.makedirs(args.name,exist_ok = True)
