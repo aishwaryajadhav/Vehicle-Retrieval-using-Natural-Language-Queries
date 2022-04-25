@@ -6,8 +6,8 @@ MODEL:
   BERT_TYPE: "ROBERTA"
   BERT_NAME: "roberta-large"
   IMG_ENCODER: "efficientnet-b3"
-  car_idloss: False
-  mo_idloss: False
-  share_idloss: False
+  car_idloss: True
+  mo_idloss: True
+  share_idloss: True
 TRAIN: 
   BATCH_SIZE: 8
