@@ -3,6 +3,7 @@ DATA:
   SIZE: 320
   TRAIN_JSON_PATH: "../data/train_tracks_bart_nlpaug.json"
   EVAL_JSON_PATH: "../data/val_tracks_bart_nlpaug.json"
+  TEST_TRACKS_JSON_PATH: "../data/val_tracks_bart_nlpaug.json"
   CROP_AREA: 1.5 ## new_w = CROP_AREA* old_w
 
   ## We may need to add a new data path for feature vectors.
@@ -33,6 +34,6 @@ TEST:
 ## When running main.py to train, you will specify a experiment name
 ## A folder with the same name will be created to save checkpoints.
 ## in this example, the experiment name is video.
-  QUERY_JSON_PATH: "data/val_tracks_bart_nlpaug.json"
+  QUERY_JSON_PATH: "../data/val_tracks_bart_nlpaug.json"
   RESTORE_FROM: "video_bk_full/checkpoint_best_eval.pth"
   
