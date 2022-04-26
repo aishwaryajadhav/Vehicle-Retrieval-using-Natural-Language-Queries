@@ -89,7 +89,7 @@ with open(cfg.TEST.QUERY_JSON_PATH) as f:
 query_embed = dict()
 with torch.no_grad():
     for q_id in tqdm(queries):
-        tokens = tokenizer.batch_encode_plus(queries[q_id], padding='longest',
+        tokens = tokenizer.batch_encode_plus(queries[q_id]['nl'], padding='longest',
                                                    return_tensors='pt')
         lang_embeds = model.encode_text(tokens['input_ids'].cuda(),tokens['attention_mask'].cuda())
         query_embed[q_id] = lang_embeds.data.cpu().numpy()
