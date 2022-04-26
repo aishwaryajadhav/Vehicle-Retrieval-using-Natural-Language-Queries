@@ -15,10 +15,10 @@ from torch.utils.data import DataLoader, DistributedSampler
 from tqdm import tqdm
 
 from config import get_default_config
-from models.siamese_baseline import SiameseBaselineModelv1,SiameseLocalandMotionModelBIG
+from models.siamese_baseline import SiameseBaselineModelv1,SiameseLocalandMotionModelBIG, SiameseLocalandMotionOfflineVideo
 from utils import TqdmToLogger, get_logger,AverageMeter,accuracy,ProgressMeter
 from datasets import CityFlowNLDataset
-from datasets import CityFlowNLInferenceDataset
+from datasets import CityFlowNLInferenceDataset, CityFlowNLInferenceBK
 from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import time
@@ -48,8 +48,10 @@ if cfg.MODEL.NAME == "base":
     model = SiameseBaselineModelv1(cfg.MODEL)
 elif cfg.MODEL.NAME == "dual-stream":
     model = SiameseLocalandMotionModelBIG(cfg.MODEL)
+elif cfg.MODEL.NAME == "video-bk":
+    model = SiameseLocalandMotionOfflineVideo(cfg.MODEL)
 else:
-    assert cfg.MODEL.NAME in ["base","dual-stream"] , "unsupported model"
+    assert cfg.MODEL.NAME in ["base","dual-stream","video-bk"] , "unsupported model"
 checkpoint = torch.load(cfg.TEST.RESTORE_FROM)
 new_state_dict = OrderedDict()
 for k, v in checkpoint['state_dict'].items():
@@ -61,7 +63,7 @@ if use_cuda:
     torch.backends.cudnn.benchmark = True
 
 
-test_data=CityFlowNLInferenceDataset(cfg.DATA, transform=transform_test)
+test_data=CityFlowNLInferenceBK(cfg.DATA, transform=transform_test)
 testloader = DataLoader(dataset=test_data, batch_size=cfg.TEST.BATCH_SIZE, shuffle=False, num_workers=8)
 
 if cfg.MODEL.BERT_TYPE == "BERT":
@@ -91,4 +93,4 @@ with torch.no_grad():
                                                    return_tensors='pt')
         lang_embeds = model.encode_text(tokens['input_ids'].cuda(),tokens['attention_mask'].cuda())
         query_embed[q_id] = lang_embeds.data.cpu().numpy()
-pickle.dump(query_embed,open(save_dir+'lang_feat_%s.pkl'%save_name, 'wb'))
+pickle.dump(query_embed,open(save_dir+'/lang_feat_%s.pkl'%save_name, 'wb'))

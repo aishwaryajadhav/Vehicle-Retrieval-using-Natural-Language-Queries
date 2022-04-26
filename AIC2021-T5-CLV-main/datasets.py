@@ -347,7 +347,7 @@ class CityFlowNLInferenceBK(Dataset):
         if self.transform is not None:
             crop = self.transform(crop)
         if self.data_cfg.USE_MOTION:
-            bk_path = os.path.join(self.data_cfg.MOTION_PATH, "{0}.npy".format(self.list_of_uuids[tmp_index]))
+            bk_path = os.path.join(self.data_cfg.MOTION_PATH, "{0}.npy".format(track["track_id"]))
             if os.path.exists(bk_path):
                 # print("BK path -> " + bk_path)
                 bk_numpy = np.load(bk_path)
@@ -358,6 +358,6 @@ class CityFlowNLInferenceBK(Dataset):
                     bk = torch.mean(bk, 0, keepdim=True)
             else:
                 bk = torch.ones(1, 512)
-            print(bk.shape)
+            # print(bk.shape)
             return crop,bk,track["track_id"],track["frames_id"]
         return crop,track["track_id"],track["frames_id"]
