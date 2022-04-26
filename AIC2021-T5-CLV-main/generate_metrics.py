@@ -68,6 +68,6 @@ def worst(results, n=20):
 
 
 results = json.load(open(json_file))
-print(MRR(results))
-print(recall(results, 5))
-print(recall(results, 10))
+print("MRR -> {0}".format(MRR(results)))
+print("Recall@5 -> {0}".format(recall(results, 5)))
+print("Recall@10 -> {0}".format(recall(results, 10)))
