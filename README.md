@@ -1,4 +1,4 @@
-# **11775 project**
+# **Vehicle Retrieval using Natural Language Queries**
 Aishwarya Jadhav
 anjadhav@cs.cmu.edu  
 Benny Jiang
