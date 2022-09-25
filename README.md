@@ -52,22 +52,3 @@ language descriptions of the vehicle target.
 1. In the folder ./IG65_extraction, we are trying to merge images into videos.
 2. By using the ./image_to_vid.py to generate the video
 3. By using the ./extract_ig65m.py to extract the video feature.
-
-
-
-
-# **4. POC**
-
-## **4.1 Baseline result**  
-
-| Baseline Name |Type | Time |Dataset  |report address|  
-| :-----| ----: | :----: | :----: |:----|
-| poc_EXP1_baseline_2022_4_5 | alg| 2022/4/5 - 2022/4/10 |  2022 AI City Challenge Track 2 | [Experimental Report](https://github.com/vivek10p14/11775Proj/blob/main/results/poc/poc_EXP1_baseline_2022_4_5.md)|
-## **4.2 TOD**  
-
-
-## **4.3 TOD**  
-
-
-# **5. ALG**
-# **5. ALG**
