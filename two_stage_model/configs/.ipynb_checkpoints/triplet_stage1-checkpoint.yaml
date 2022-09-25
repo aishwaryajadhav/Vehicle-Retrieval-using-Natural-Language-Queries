@@ -1,0 +1,24 @@
+DATA:
+  USE_MOTION: False
+  SIZE: 288
+  CROP_AREA: 1. ## new_w = CROP_AREA* old_w
+
+
+MODEL:
+  NAME: "triplet_stage1"
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+  IMG_ENCODER: "se_resnext50_32x4d"
+  car_idloss: True
+  mo_idloss: False
+  share_idloss: True
+  lang_idloss: True
+  CHECKPOINT: "../checkpoints/motion_SE_3CLS_nonlpaug_288.pth"
+TRAIN: 
+  BATCH_SIZE: 16
+  LR: 
+      BASE_LR: 0.001
+
+TEST:
+  QUERY_JSON_PATH: ".~/data_temp/test-queries.json"
+  RESTORE_FROM: "../checkpoints/motion_SE_3CLS_nonlpaug_288.pth"

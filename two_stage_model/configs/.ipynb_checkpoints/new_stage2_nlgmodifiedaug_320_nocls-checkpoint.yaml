@@ -1,0 +1,24 @@
+DATA:
+  USE_MOTION: True
+  SIZE: 320
+  CROP_AREA: 1.5 ## new_w = CROP_AREA* old_w
+
+
+MODEL:
+  NAME: "new_stage2"
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+  IMG_ENCODER: "efficientnet-b3"
+  car_idloss: False
+  mo_idloss: False
+  share_idloss: False
+  lang_idloss: False
+  CHECKPOINT: "/home/azureuser/code/AICity_Baseline_2021/pretrained_baselines/motion_effb3_NOCLS_nlpaug_320.pth"
+TRAIN: 
+  BATCH_SIZE: 1
+  ONE_EPOCH_REPEAT: 2
+  EPOCH: 15
+
+TEST:
+  QUERY_JSON_PATH: ".~/data_temp/test-queries.json"
+  RESTORE_FROM: "/home/azureuser/code/AICity_Baseline_2021/pretrained_baselines/motion_effb3_NOCLS_nlpaug_320.pth"

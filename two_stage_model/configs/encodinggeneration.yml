@@ -1,0 +1,18 @@
+DATA:   
+  CROP_AREA: 1. ## new_w = CROP_AREA* old_w
+
+
+STAGE1MODEL:
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+  IMG_ENCODER: "se_resnext50_32x4d"
+  CHECKPOINT: "/home/azureuser/code/AICity_Baseline_2021/stage1/checkpoint_best_eval_loss_1.8794831085205077.pth"
+  DATA_SIZE: 288
+
+STAGE2MODEL:
+  BERT_TYPE: "ROBERTA"
+  BERT_NAME: "roberta-large"
+  IMG_ENCODER: "efficientnet-b3"
+  CHECKPOINT: "/home/azureuser/code/AICity_Baseline_2021/triplet_stage2/checkpoint_best_eval_loss_1.9999023513793945.pth"
+  DATA_SIZE: 320
+
